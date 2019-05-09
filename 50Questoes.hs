@@ -5,44 +5,61 @@ import Data.List
 
 --1) Constrói a lista dos números inteiros compreendidos entre dois limites.
 psenumFromTo :: Int -> Int -> [Int]
-psenumFromTo x y | x == y = x : []
+psenumFromTo x y | x == y = [x]
                  | x < y = x : psenumFromTo (x+1) y
                  | otherwise = []
+
+myenumFromTo :: Int -> Int -> [Int]
+myenumFromTo x y = [x..y]
 
 --2) Constrói a lista dos números inteiros compreendidos entre dois limites e espaçados de um valor constante.
 
 psenumFromThenTo :: Int -> Int -> Int -> [Int]
-psenumFromThenTo x y z | x == z = x : []
+psenumFromThenTo x y z | x == z = [x]
                        | x < z = x : psenumFromThenTo y (y + (y-x)) z
-                       | x > z = x : psenumFromThenTo y (y + (y-x)) z 
+                       | x > z = x : psenumFromThenTo y (y + (y-x)) z
 
+myenumFromThenTo :: Int -> Int -> Int -> [Int]
+myenumFromThenTo x y z = [x, x+y .. z]
 
 --3) Concatena duas listas.
 (+++) :: [a] -> [a] -> [a]
 (+++) [] l = l
 (+++) (h:t) l = h : ((+++) t l)
 
+(+-+) :: [a] -> [a] -> [a]
+(+-+) l1 l2 = foldr (:) l2 l1
+
 
 --4) Dada uma lista e um inteiro, calcula o elemento da lista que se encontra nessa posição (assume-se que o primeiro elemento se encontra na posição 0).
-(!!!) :: [a] -> Int -> a 
+(!!!) :: [a] -> Int -> a
 (!!!) (h:t) 0 = h
-(!!!) (h:t) x = (!!!) t (x-1) 
+(!!!) (h:t) x = (!!!) t (x-1)
+
+(!?!) :: [a] -> Int -> a
+(!?!) l x = head $ drop x l
 
 
 --5) Dada uma lista calcula uma lista com os elementos dessa lista pela ordem inversa.
-psreverse :: [a] -> [a] 
+psreverse :: [a] -> [a]
 psreverse [] = []
 psreverse (h:t) = aux h (psreverse t)
           where aux :: a -> [a] -> [a]
                 aux x [] = [x]
                 aux x (h:t) = h : aux x t
 
+myreverse :: [a] -> [a]
+myreverse = foldl (flip (:)) []
 
---6) Dado um inteiro n e uma lista l calcula a lista com os (no máximo) n primeiros elementos de l. 
+
+--6) Dado um inteiro n e uma lista l calcula a lista com os (no máximo) n primeiros elementos de l.
 pstake :: Int -> [a] -> [a]
 pstake 0 _ = []
 pstake _ [] = []
-pstake x (h:t) = if x > 0 then h : pstake (x-1) t else [] 
+pstake x (h:t) = if x > 0 then h : pstake (x-1) t else []
+
+mytake :: Int -> [a] -> [a]
+mytake x l = snd $ foldl (\(a,b) y -> if a < x then (a+1, b++[y]) else (a,b)) (0,[]) l
 
 
 --7) Dado um inteiro n e uma lista l calcula a lista sem os (no máximo) n primeiros elementos de l.
@@ -51,6 +68,8 @@ psdrop 0 lista = lista
 psdrop _ [] = []
 psdrop x (h:t) = psdrop (x-1) t
 
+mydrop :: Int -> [a] -> [a]
+mydrop x l = snd $ foldl (\(a,b) y -> if a < x then (a+1, b) else (a,b ++ [y])) (0,[]) l
 
 --8) Constói uma lista de pares a partir de duas listas.
 pszip :: [a] -> [b] -> [(a,b)]
@@ -63,35 +82,53 @@ pselem :: (Eq a) => a -> [a] -> Bool
 pselem _ [] = False
 pselem x (h:t) = if x /= h then pselem x t else True
 
+myelem :: (Eq a) => a -> [a] -> Bool
+myelem x = any (==x)
 
---10) Dado um inteiro n e um elemento x constói uma lista com n elementos, todos iguais a x. 
+
+--10) Dado um inteiro n e um elemento x constói uma lista com n elementos, todos iguais a x.
 psreplicate :: Int -> a -> [a]
 psreplicate 0 _ = []
 psreplicate z y = if z > 0 then y : psreplicate (z-1) y else []
+
+myreplicate :: Int -> a -> [a]
+myreplicate x = take x . repeat
 
 
 --11) Dado um elemento e uma lista, constrói uma lista em que o elemento fornecido é intercalado entre os elementos da lista fornecida.
 psinterspace :: a -> [a] -> [a]
 psinterspace _ [] = []
-psinterspace _ [x] = [x] --como só põe "_" entre 2 elementos não pode ser executável numa lista de apenas um elemento
-psinterspace x (h:t) = h : ( x : psinterspace x t ) 
+psinterspace _ [x] = [x]
+psinterspace x (h:t) = h : ( x : psinterspace x t )
 
+myintersperce :: a -> [a] -> [a]
+myintersperce x l = snd $ foldl (\(a,b) y -> if a < len then (succ a, b ++ [y,x]) else (a, b ++ [y])) (0,[]) l
+  where
+    len = length l - 1
 
 --12) Agrupa elementos iguais e consecutivos de uma lista.
 psgroup :: Eq a => [a] -> [[a]]
-psgroup [] = [] 
+psgroup [] = []
 psgroup l = aaa : psgroup (psdrop (length aaa) l)
     where aaa = psgroup_aux l
 
 psgroup_aux :: Eq a => [a] -> [a]
 psgroup_aux [x] = [x]
-psgroup_aux (x:h:t) = if x == h  then x : psgroup_aux (h:t) else [x] 
+psgroup_aux (x:h:t) = if x == h  then x : psgroup_aux (h:t) else [x]
 
+mygroup :: Eq a => [a] -> [[a]]
+mygroup [] = []
+mygroup l@(h:t) = x : mygroup y
+    where
+      (x,y) = span (==h) l
 
 --13) Concatena as listas de uma lista.
 psconcat :: [[a]] -> [a]
 psconcat [] = []
 psconcat (h:t) = (+++) h (psconcat t)
+
+myconcat :: [[a]] -> [a]
+myconcat = foldr (++) []
 
 
 --14) Calcula a lista dos prefixos de uma lista.
@@ -100,7 +137,7 @@ psinits l = psinits_aux 0 l
 
 psinits_aux :: Int -> [a] -> [[a]]
 psinits_aux _ [] = [[]]
-psinits_aux x l = if x < length l then pstake x l : psinits_aux (x+1) l else [l] 
+psinits_aux x l = if x < length l then pstake x l : psinits_aux (x+1) l else [l]
 
 
 --15) Calcula a lista de sufixos de uma lista.
@@ -143,8 +180,8 @@ pselemindices_aux _ _ [] = []
 pselemindices_aux i x (h:t) = if x == h then i : pselemindices_aux (i+1) x t else pselemindices_aux (i+1) x t
 
 
---20) Calcula uma lista com os mesmos elementos da recebida, sem repetições. --????
-psnub :: Eq a => [a] -> [a] 
+--20) Calcula uma lista com os mesmos elementos da recebida, sem repetições.
+psnub :: Eq a => [a] -> [a]
 psnub [] = []
 psnub (h:t) = h : psnub (psnub_aux h t)
 
@@ -159,11 +196,11 @@ psdelete _ [] = []
 psdelete x (h:t) = if x == h then t else h : psdelete x t
 
 
---22) Retorna a lista resultante de remover (as primeiras ocorrências) dos elementos da segunda lista da primeira. 
+--22) Retorna a lista resultante de remover (as primeiras ocorrências) dos elementos da segunda lista da primeira.
 doubleslash :: Eq a => [a] -> [a] -> [a]
 doubleslash l [] = l
 doubleslash [] _ = []
-doubleslash l1 (h:t) = (doubleslash (psdelete h l1) t) --caso não haja h em l1 o que acontece
+doubleslash l1 (h:t) = (doubleslash (psdelete h l1) t)
 
 
 --23) Retorna a lista resultante de acrescentar à primeira lista os elementos da segunda que não ocorrem na primeira.
@@ -171,6 +208,9 @@ psunion :: Eq a => [a] -> [a] -> [a]
 psunion l [] = l
 psunion [] l = l
 psunion l (h:t) = if pselem h l then psunion l t else psunion ((+++) l [h]) t
+
+myunion :: Eq a => [a] -> [a] -> [a]
+myunion l ll= nub $ (++) l ll
 
 
 --24) Retorna a lista resultante de remover da primeira lista os elementos que não pertencem à segunda.
@@ -187,10 +227,10 @@ psinsert x (h:t) = if x > h then (h : psinsert x t) else (+++) [x] (h:t)
 
 
 --26) Junta todas as strings da lista numa só, separando-as por um espaço.
-psunwords :: [String] -> String 
+psunwords :: [String] -> String
 psunwords [] = ""
-psunwords [x] = x  
-psunwords (h:t) = (+++) ((+++) h " ") (psunwords t) 
+psunwords [x] = x
+psunwords (h:t) = (+++) ((+++) h " ") (psunwords t)
 
 
 --27) Junta todas as strings da lista numa só, separando-as pelo caracter '\n'.
@@ -200,26 +240,30 @@ psunlines [x] = (+++) x "\n"
 psunlines (h:t) = (+++) ((+++) h ['\n']) (psunlines t)
 
 
---28) Dada uma lista não vazia, retorna a posição onde se encontra o maior elemento da lista. 
+--28) Dada uma lista não vazia, retorna a posição onde se encontra o maior elemento da lista.
 --    As posiçõesda lista começam em 0, i.e., a função deverá retornar 0 se o primeiro elemento da lista for o maior.
-psMaior :: Ord a => [a] -> a 
-psMaior [] = undefined 
-psMaior (h:t) = psMaior_aux h t
+psMaior :: Ord a => [a] -> Int
+psMaior l = psMaior_aux 0 (maximum l) l
 
-psMaior_aux :: Ord a => a -> [a] -> a
-psMaior_aux x [] = x 
-psMaior_aux x (h:t) = if x <= h then psMaior_aux h t else psMaior_aux x t
+psMaior_aux :: Ord a => Int -> a -> [a] -> Int
+psMaior_aux x _ [] = x
+psMaior_aux x y (h:t) = if y == h then psMaior_aux x y [] else psMaior_aux (succ x) y t
 
 --29) Testa se uma lista tem elementos repetidos.
 temRepetidos :: Eq a => [a] -> Bool
 temRepetidos [] = False
 temRepetidos (h:t) = if pselem h t then True else temRepetidos t
 
+temRepetidos' :: Eq a => [a] -> Bool
+temRepetidos' l = (length l) == (length $ nub l)
+
 
 --30) Determina a lista dos algarismos de uma dada lista de caracteres.
 algarismos :: [Char] -> [Char]
-algarismos [] = [] 
+algarismos [] = []
 algarismos (h:t) = if isDigit (h) then h:algarismos t else algarismos t
+
+algarismos' = filter isDigit
 
 
 --31) Determina os elementos de uma lista que ocorrem em posições ímpares.
@@ -243,7 +287,7 @@ isSorted [x] = True
 isSorted (x:y:t) = if x < y && isSorted (y:t) then True else False
 
 
---34) Calcula o resultado de ordenar uma lista. ERRO!!!!
+--34) Calcula o resultado de ordenar uma lista.
 iSort :: Ord a => [a] -> [a]
 iSort [] = []
 iSort (h:t) = psinsert h (iSort t)
@@ -253,7 +297,7 @@ iSort (h:t) = psinsert h (iSort t)
 menor :: String -> String -> Bool
 menor _ [] = False
 menor [] _ = True
-menor l1 l2 = length l2 > length l1 
+menor l1 l2 = length l2 > length l1
 
 
 --36) Testa se um elemento pertence a um multi-conjunto.
@@ -280,12 +324,12 @@ insereMSet x [] = [(x,1)]
 insereMSet x ((a,b):t) = if x == a then (a,(b+1)) : t else (a,b) : insereMSet x t
 
 
---40) Que remove um elemento a um multi-conjunto. Se o elemento não existir, deve ser 
+--40) Que remove um elemento a um multi-conjunto. Se o elemento não existir, deve ser
 --    retornado o multi-conjunto recebido.
 removeMSet :: Eq a => a -> [(a,Int)] -> [(a,Int)]
 removeMSet x [] = []
-removeMSet x ((a,b):t) = if x == a 
-                         then 
+removeMSet x ((a,b):t) = if x == a
+                         then
                             if b == 1 then t else (a,(b-1)) : t
                          else (a,b) : removeMSet x t
 
@@ -297,31 +341,26 @@ constroiMSet l = constroiMSet_aux [] l
 
 constroiMSet_aux :: Eq a => [(a,Int)] -> [a] -> [(a,Int)]
 constroiMSet_aux x [] = x
-constroiMSet_aux x (h:t) = constroiMSet_aux (insereMSet h x) t 
+constroiMSet_aux x (h:t) = constroiMSet_aux (insereMSet h x) t
 
 
-{--42) Divide uma lista de Either s em duas listas.
+--42) Divide uma lista de Either s em duas listas.
 pspartitionEithers :: [Either a b] -> ([a],[b])
-pspartitionEithers
-
-
-partitionEithers2 :: [Either a b] -> ([a],[b])
-partitionEithers2 l = aux l ([],[])
-where
-aux :: [Either a b] -> ([a],[b]) -> ([a],[b])
-aux ((Left h):t) (l1,l2) = aux t (h:l1,l2)
-aux ((Right h):t) (l1,l2) = aux t (l1,h:l2)
-aux [] ls = ls -}
+pspartitionEithers l = pspartitionEithers_aux l ([],[])
+  where
+    pspartitionEithers_aux [] l = l
+    pspartitionEithers_aux ((Left x):t) (a,b) = pspartitionEithers_aux t (x:a,b)
+    pspartitionEithers_aux ((Right x):t) (a,b) = pspartitionEithers_aux t (a,x:b)
 
 --43)
 catmaybe :: [Maybe a] -> [a]
 catmaybe [] = []
 catmaybe (Just x:t) = x : catmaybe t
-catmaybe (Nothing : t) = catmaybe t 
+catmaybe (Nothing : t) = catmaybe t
 
 --44)
 data Movimento = Norte | Sul | Este | Oeste
-              deriving Show 
+              deriving Show
 
 posicao :: (Int,Int) -> [Movimento] -> (Int,Int)
 posicao x [] = x
@@ -341,7 +380,7 @@ caminho (x1,y1) (x2,y2) | x1 > x2 =  Oeste : caminho (x1-1, y1) (x2, y2)
 
 --46)
 vertical :: [Movimento] -> Bool
-vertical [] = True 
+vertical [] = True
 vertical (Norte:t) = True && vertical t
 vertical (Sul:t) = True && vertical t
 vertical (Este:t) = False && vertical t
@@ -349,22 +388,22 @@ vertical (Oeste:t) = False && vertical t
 
 --47)
 data Posicao = Pos Int Int
-               deriving Show 
+               deriving Show
 
 maisCentral :: [Posicao] -> Posicao
 maisCentral [] = Pos 0 0
 maisCentral (h:t) = maisCentral_aux t h
     where maisCentral_aux :: [Posicao] -> Posicao -> Posicao
           maisCentral_aux [] max = max
-          maisCentral_aux (Pos x y:t) (Pos x1 y1) = if x1^2 + y1^2 > x^2 + y^2 
+          maisCentral_aux (Pos x y:t) (Pos x1 y1) = if x1^2 + y1^2 > x^2 + y^2
                                                     then maisCentral_aux t (Pos x y) --posiçao mais perto da origem
-                                                    else maisCentral_aux t (Pos x1 y1) 
+                                                    else maisCentral_aux t (Pos x1 y1)
 
 
 --48)
 vizinhos :: Posicao -> [Posicao] -> [Posicao]
 vizinhos _ [] = []
-vizinhos (Pos x y) ((Pos x1 y1):t) | (y == y1) && (x == (x1 +1)) = (Pos x1 y1) : vizinhos (Pos x y) t 
+vizinhos (Pos x y) ((Pos x1 y1):t) | (y == y1) && (x == (x1 +1)) = (Pos x1 y1) : vizinhos (Pos x y) t
                                    | (y == y1) && (x == (x1 -1)) = (Pos x1 y1) : vizinhos (Pos x y) t
                                    | (x == x1) && (y == (y1 +1)) = (Pos x1 y1) : vizinhos (Pos x y) t
                                    | (x == x1) && (y == (y1 -1)) = (Pos x1 y1) : vizinhos (Pos x y)  t
