@@ -6,7 +6,7 @@ import Data.Char
 --EX1
 
 --a
-funA :: [Float] -> Float --NAO DA COM DOUBLE !!!!
+funA :: [Float] -> Float
 funA [] = 0
 funA (x:y) = x^2 + (funA y)
 {-  funA [2,3,5,1]
